@@ -1042,17 +1042,29 @@
             lastFallCoords: { lat: -27.5954, lng: -48.5480 },
 
             init() {
+                console.log('🚀 App inicializada');
+                
                 // Login form
-                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                const loginForm = document.getElementById('loginForm');
+                if (!loginForm) {
+                    console.error('❌ loginForm não encontrado!');
+                    return;
+                }
+                
+                loginForm.addEventListener('submit', (e) => {
                     e.preventDefault();
+                    console.log('📝 Tentando fazer login...');
                     const username = document.getElementById('username').value;
                     const password = document.getElementById('password').value;
+                    console.log('👤 Username:', username);
 
                     if (username === 'herick' && password === '1234') {
+                        console.log('✅ Login bem-sucedido!');
                         localStorage.setItem('isLoggedIn', 'true');
                         localStorage.setItem('username', username);
                         this.showDashboard();
                     } else {
+                        console.log('❌ Credenciais inválidas');
                         document.getElementById('errorMessage').classList.add('show');
                         setTimeout(() => {
                             document.getElementById('errorMessage').classList.remove('show');
@@ -1074,10 +1086,17 @@
 
                 // Close modals on outside click
                 document.querySelectorAll('.modal-overlay').forEach(modal => {
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            modal.classList.remove('active');
-                            if (modal.id === 'fallModal') {
+                console.log('🔄 Mudando para view:', viewId);
+                document.querySelectorAll('.view').forEach(view => {
+                    view.classList.remove('active');
+                });
+                const targetView = document.getElementById(viewId);
+                if (targetView) {
+                    targetView.classList.add('active');
+                    console.log('✅ View ativada:', viewId);
+                } else {
+                    console.error('❌ View não encontrada:', viewId);
+                }
                                 this.alertModalOpen = false;
                             }
                         }
@@ -1344,8 +1363,11 @@
 
         // Inicializar aplicação
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM carregado');
             app.init();
         });
+        
+        console.log('📜 Script carregado');
     </script>
 </body>
 </html>
