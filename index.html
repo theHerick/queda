@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuidador de Idosos</title>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAexCf7hPN2OQvfsw66UDpci6nycivrK98",
+            authDomain: "void-activation-system.firebaseapp.com",
+            databaseURL: "https://void-activation-system-default-rtdb.firebaseio.com",
+            projectId: "void-activation-system",
+            storageBucket: "void-activation-system.firebasestorage.app",
+            messagingSenderId: "108268095097",
+            appId: "1:108268095097:web:4f45ff75a9e528b3f0f6a8",
+            measurementId: "G-P71BZFRDQB"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // Tornar disponível globalmente
+        window.firebaseDb = db;
+        window.firebaseAuth = auth;
+        window.firebaseStorage = storage;
+        window.firebaseRef = ref;
+        window.firebaseOnValue = onValue;
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #667eea;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .profile-info h1 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .card-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: #a0aec0;
+            margin-top: 5px;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+
+        .falls-list {
+            margin-top: 15px;
+        }
+
+        .fall-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .fall-date {
+            font-size: 14px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .fall-time {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .fall-severity {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .fall-severity.low {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .fall-severity.medium {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        .fall-severity.high {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .locate-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .locate-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .sync-indicator.connected {
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .sync-indicator.syncing {
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .sync-indicator.error {
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #a0aec0;
+            padding: 30px;
+            font-size: 14px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Modal/Popup Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .modal-content {
+            margin-bottom: 25px;
+        }
+
+        .modal-info-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .modal-info-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .modal-info-value {
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .modal-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .modal-button:hover {
+            background: #5568d3;
+        }
+
+        .modal-button:active {
+            transform: scale(0.98);
+        }
+
+        .alert-modal .modal {
+            border-top: 5px solid #e53e3e;
+        }
+
+        .location-modal .modal {
+            border-top: 5px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <!-- Indicador de Sincronização -->
+    <div id="syncIndicator" class="sync-indicator syncing">
+        <div class="sync-dot"></div>
+        <span>Conectando...</span>
+    </div>
+
+    <div class="container">
+        <!-- Header com Nome e Status -->
+        <div class="header">
+            <div class="profile-section">
+                <div class="avatar" onclick="simulateFall()" style="cursor: pointer;" title="Clique para simular queda">👴</div>
+                <div class="profile-info">
+                    <h1 id="elderName">José Silva</h1>
+                    <div class="status active" id="statusBadge">
+                        <span class="status-indicator"></span>
+                        <span>Ativo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Informações Pessoais -->
+        <div class="card">
+            <div class="card-title">👤 Informações Pessoais</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">🎂 Idade</div>
+                    <div class="modal-info-value" id="idade">75 anos</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">📞 Emergência</div>
+                    <div class="modal-info-value" id="telefoneEmergencia" style="font-size: 14px;">+55 48 99999-9999</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0; grid-column: 1 / -1;">
+                    <div class="modal-info-label">👨‍👩‍👧 Contato</div>
+                    <div class="modal-info-value" id="contatoEmergencia">Maria Silva (Filha)</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0; grid-column: 1 / -1;">
+                    <div class="modal-info-label">🏥 Plano de Saúde</div>
+                    <div class="modal-info-value" id="planoSaude">Unimed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Atividade Física -->
+        <div class="card">
+            <div class="card-title">📊 Atividade Física</div>
+            <div class="card-value">
+                <span id="dailySteps">3,847</span>
+                <span style="font-size: 18px; color: #48bb78;">passos</span>
+            </div>
+            <div class="card-subtitle">Meta: <span id="metaPassos">5,000</span> passos (<span id="percentualMeta">77</span>%)</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 77%;" id="stepsProgress"></div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">🔥 Calorias</div>
+                    <div class="modal-info-value" id="calorias">154 kcal</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">📏 Distância</div>
+                    <div class="modal-info-value" id="distancia">2.69 km</div>
+                </div>
+            </div>
+            <div class="card-subtitle" style="margin-top: 10px;">
+                Última atualização: <span id="ultimaAtualizacao">Há 2 min</span>
+            </div>
+        </div>
+
+        <!-- Card de Condições Médicas -->
+        <div class="card">
+            <div class="card-title">💊 Saúde e Medicamentos</div>
+            <div class="modal-info-item" style="background: #e6f7ff; border-left: 4px solid #1890ff;">
+                <div class="modal-info-label">🏥 Condições Médicas</div>
+                <div class="modal-info-value" id="condicoesMedicas">Hipertensão, Diabetes Tipo 2</div>
+            </div>
+            <div style="margin-top: 10px;">
+                <div class="modal-info-label" style="margin-bottom: 8px;">💊 Medicamentos</div>
+                <div id="medicamentosList"></div>
+            </div>
+        </div>
+
+        <!-- Card de Status do Dispositivo -->
+        <div class="card">
+            <div class="card-title">📱 Status do Dispositivo</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">🔋 Bateria</div>
+                    <div class="card-value" style="font-size: 24px; color: #48bb78;">
+                        <span id="bateria">85</span>%
+                    </div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">📶 WiFi</div>
+                    <div class="card-value" style="font-size: 24px; color: #667eea;">
+                        <span id="sinalWifi">-45</span> dBm
+                    </div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">🆔 Device ID</div>
+                    <div class="modal-info-value" id="deviceId" style="font-size: 12px;">MAC_ADDRESS</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">🌐 IP</div>
+                    <div class="modal-info-value" id="deviceIp">192.168.1.100</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">⚙️ Firmware</div>
+                    <div class="modal-info-value" id="versaoFirmware">1.0.0</div>
+                </div>
+                <div class="modal-info-item" style="margin: 0;">
+                    <div class="modal-info-label">⏱️ Uptime</div>
+                    <div class="modal-info-value" id="uptime">3h 25m</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Histórico de Quedas -->
+        <div class="card">
+            <div class="card-title">⚠️ Histórico de Quedas</div>
+            <div class="card-value" style="font-size: 28px; color: #e53e3e;">
+                <span id="fallsCount">3</span>
+                <span style="font-size: 14px; color: #718096;">quedas nos últimos 30 dias</span>
+            </div>
+            
+            <div class="falls-list" id="fallsList">
+                <div class="fall-item">
+                    <div>
+                        <div class="fall-date">10 Dez 2025</div>
+                        <div class="fall-time">14:32</div>
+                    </div>
+                    <div class="fall-severity low">Leve</div>
+                </div>
+                
+                <div class="fall-item">
+                    <div>
+                        <div class="fall-date">05 Dez 2025</div>
+                        <div class="fall-time">09:15</div>
+                    </div>
+                    <div class="fall-severity medium">Moderada</div>
+                </div>
+                
+                <div class="fall-item">
+                    <div>
+                        <div class="fall-date">28 Nov 2025</div>
+                        <div class="fall-time">18:45</div>
+                    </div>
+                    <div class="fall-severity low">Leve</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão Localizar -->
+        <button class="locate-btn" onclick="locateElder()">
+            <span style="font-size: 24px;">📍</span>
+            <span>Localizar Idoso</span>
+        </button>
+    </div>
+
+    <!-- Modal de Alerta de Queda -->
+    <div id="fallModal" class="modal-overlay alert-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">🚨</div>
+                <div class="modal-title">Alerta de Queda</div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-info-item">
+                    <div class="modal-info-label">⚠️ Status</div>
+                    <div class="modal-info-value">Queda detectada agora!</div>
+                </div>
+                <div class="modal-info-item">
+                    <div class="modal-info-label">📍 Localização</div>
+                    <div class="modal-info-value" id="fallLocation"></div>
+                </div>
+                <div class="modal-info-item">
+                    <div class="modal-info-label">🌐 Coordenadas</div>
+                    <div class="modal-info-value" id="fallCoords"></div>
+                </div>
+                <div class="modal-info-item">
+                    <div class="modal-info-label">🕐 Horário</div>
+                    <div class="modal-info-value" id="fallTime"></div>
+                </div>
+                <div class="modal-info-item" style="background: #fed7d7; border-left: 4px solid #e53e3e;">
+                    <div class="modal-info-label" style="color: #c53030;">⚡ Ação Recomendada</div>
+                    <div class="modal-info-value" style="color: #c53030;">Verificar imediatamente!</div>
+                </div>
+            </div>
+            <button class="modal-button" onclick="openFallGoogleMaps()" style="margin-bottom: 10px;">
+                🌍 Abrir no Google Maps
+            </button>
+            <button class="modal-button" onclick="closeModal('fallModal')" style="background: #718096;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Localização -->
+    <div id="locationModal" class="modal-overlay location-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">🗺️</div>
+                <div class="modal-title">Localização</div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-info-item">
+                    <div class="modal-info-label">📍 Última Localização</div>
+                    <div class="modal-info-value">Rua das Flores, 123<br>Florianópolis - SC</div>
+                </div>
+                <div class="modal-info-item">
+                    <div class="modal-info-label">🌐 Coordenadas</div>
+                    <div class="modal-info-value">Lat: -27.5954<br>Long: -48.5480</div>
+                </div>
+                <div class="modal-info-item">
+                    <div class="modal-info-label">🕐 Atualizado</div>
+                    <div class="modal-info-value">Há 2 minutos</div>
+                </div>
+            </div>
+            <button class="modal-button" onclick="openGoogleMaps()" style="margin-bottom: 10px;">
+                🌍 Abrir no Google Maps
+            </button>
+            <button class="modal-button" onclick="closeModal('locationModal')" style="background: #718096;">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        // Variável global para armazenar coordenadas da última queda
+        let lastFallCoords = { lat: -27.5954, lng: -48.5480 };
+        let currentUserData = null;
+        let updateCount = 0;
+        let userRef = null;
+
+        // Função para atualizar indicador de sincronização
+        function updateSyncIndicator(status, message) {
+            const indicator = document.getElementById('syncIndicator');
+            if (!indicator) return;
+
+            indicator.className = 'sync-indicator ' + status;
+            indicator.innerHTML = `
+                <div class="sync-dot"></div>
+                <span>${message}</span>
+            `;
+
+            console.log(`🔄 Status: ${message}`);
+        }
+
+        // Função para buscar dados do Firebase (chamada manual)
+        function forceUpdate() {
+            const db = window.firebaseDb;
+            const ref = window.firebaseRef;
+            const onValue = window.firebaseOnValue;
+
+            if (!db || !ref || !onValue || !userRef) {
+                console.log('⏳ Aguardando inicialização...');
+                return;
+            }
+
+            console.log('🔄 Forçando atualização manual...');
+            updateSyncIndicator('syncing', 'Atualizando...');
+
+            // Força leitura dos dados
+            onValue(userRef, (snapshot) => {
+                updateCount++;
+                
+                if (snapshot.exists()) {
+                    currentUserData = snapshot.val();
+                    const timestamp = new Date().toLocaleTimeString('pt-BR');
+                    
+                    console.log(`✅ Atualização #${updateCount} às ${timestamp}`);
+                    
+                    updateSyncIndicator('connected', `Atualizado - ${timestamp}`);
+                    updateUIWithFirebaseData(currentUserData);
+                } else {
+                    console.log('❌ Documento não encontrado!');
+                    updateSyncIndicator('error', 'Usuário não encontrado');
+                }
+            }, (error) => {
+                console.error('❌ Erro ao buscar dados:', error);
+                updateSyncIndicator('error', 'Erro de conexão');
+            }, { onlyOnce: true }); // Lê apenas uma vez por chamada
+        }
+
+        // Função para conectar ao Firebase e buscar dados em tempo real
+        function connectToFirebase() {
+            const db = window.firebaseDb;
+            const ref = window.firebaseRef;
+            const onValue = window.firebaseOnValue;
+
+            if (!db || !ref || !onValue) {
+                console.error('Firebase não inicializado ainda. Tentando novamente...');
+                updateSyncIndicator('syncing', 'Aguardando Firebase...');
+                setTimeout(connectToFirebase, 500);
+                return;
+            }
+
+            console.log('🔥 Conectando ao Realtime Database...');
+            updateSyncIndicator('syncing', 'Conectando ao Firebase...');
+
+            // Referência para o usuário jose_silva
+            userRef = ref(db, 'usuarios/jose_silva');
+
+            // Listener em tempo real - ATUALIZA AUTOMATICAMENTE!
+            onValue(userRef, (snapshot) => {
+                updateCount++;
+                
+                if (snapshot.exists()) {
+                    currentUserData = snapshot.val();
+                    const timestamp = new Date().toLocaleTimeString('pt-BR');
+                    
+                    console.log(`✅ Atualização #${updateCount} recebida às ${timestamp}`);
+                    console.log('📦 Dados:', currentUserData);
+                    
+                    updateSyncIndicator('connected', `Sincronizado - ${timestamp}`);
+                    updateUIWithFirebaseData(currentUserData);
+                } else {
+                    console.log('❌ Documento não encontrado!');
+                    updateSyncIndicator('error', 'Usuário não encontrado');
+                }
+            }, (error) => {
+                console.error('❌ Erro ao buscar dados:', error);
+                updateSyncIndicator('error', 'Erro de conexão');
+            });
+
+            console.log('👂 Listener ativo! Atualizações automáticas ativadas.');
+            
+            // Força atualização a cada 5 segundos
+            setInterval(forceUpdate, 5000);
+            console.log('⏰ Atualização automática a cada 5 segundos configurada!');
+        }
+
+        // Função para atualizar a interface com dados do Firebase
+        function updateUIWithFirebaseData(data) {
+            // Atualizar nome
+            if (data.nome) {
+                document.getElementById('elderName').textContent = data.nome;
+            }
+
+            // Atualizar informações pessoais
+            if (data.idade) {
+                document.getElementById('idade').textContent = data.idade + ' anos';
+            }
+            if (data.telefoneEmergencia) {
+                document.getElementById('telefoneEmergencia').textContent = data.telefoneEmergencia;
+            }
+            if (data.contatoEmergencia) {
+                document.getElementById('contatoEmergencia').textContent = data.contatoEmergencia;
+            }
+            if (data.planoSaude) {
+                document.getElementById('planoSaude').textContent = data.planoSaude;
+            }
+
+            // Atualizar condições médicas
+            if (data.condicoesMedicas) {
+                document.getElementById('condicoesMedicas').textContent = data.condicoesMedicas.join(', ');
+            }
+
+            // Atualizar medicamentos
+            if (data.medicamentos) {
+                const medicamentosList = document.getElementById('medicamentosList');
+                medicamentosList.innerHTML = '';
+                Object.entries(data.medicamentos).forEach(([tipo, medicamento]) => {
+                    const medItem = document.createElement('div');
+                    medItem.className = 'modal-info-item';
+                    medItem.style.margin = '5px 0';
+                    medItem.innerHTML = `
+                        <div class="modal-info-label">${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</div>
+                        <div class="modal-info-value">${medicamento}</div>
+                    `;
+                    medicamentosList.appendChild(medItem);
+                });
+            }
+
+            // Atualizar status
+            if (data.dadosTempoReal && data.dadosTempoReal.statusAtual) {
+                const status = data.dadosTempoReal.statusAtual.ativo;
+                const statusBadge = document.getElementById('statusBadge');
+                if (status) {
+                    statusBadge.className = 'status active';
+                    statusBadge.innerHTML = '<span class="status-indicator"></span><span>Ativo</span>';
+                } else {
+                    statusBadge.className = 'status inactive';
+                    statusBadge.innerHTML = '<span class="status-indicator"></span><span>Inativo</span>';
+                }
+
+                // Atualizar bateria e WiFi
+                if (data.dadosTempoReal.statusAtual.bateria !== undefined) {
+                    document.getElementById('bateria').textContent = data.dadosTempoReal.statusAtual.bateria.toFixed(1);
+                }
+                if (data.dadosTempoReal.statusAtual.sinalWifi !== undefined) {
+                    document.getElementById('sinalWifi').textContent = data.dadosTempoReal.statusAtual.sinalWifi;
+                }
+            }
+
+            // Atualizar dispositivo
+            if (data.dadosTempoReal && data.dadosTempoReal.dispositivo) {
+                const dispositivo = data.dadosTempoReal.dispositivo;
+                if (dispositivo.id) {
+                    document.getElementById('deviceId').textContent = dispositivo.id;
+                }
+                if (dispositivo.ip) {
+                    document.getElementById('deviceIp').textContent = dispositivo.ip;
+                }
+                if (dispositivo.versaoFirmware) {
+                    document.getElementById('versaoFirmware').textContent = dispositivo.versaoFirmware;
+                }
+                if (dispositivo.uptime) {
+                    const hours = Math.floor(dispositivo.uptime / 3600);
+                    const minutes = Math.floor((dispositivo.uptime % 3600) / 60);
+                    document.getElementById('uptime').textContent = `${hours}h ${minutes}m`;
+                }
+            }
+
+            // Atualizar passos diários e atividade física
+            if (data.dadosTempoReal && data.dadosTempoReal.atividadeFisica) {
+                const atividadeFisica = data.dadosTempoReal.atividadeFisica;
+                const steps = atividadeFisica.passosDiarios || 0;
+                const goal = atividadeFisica.metaPassos || 5000;
+                const percentage = atividadeFisica.percentualMeta || 0;
+
+                document.getElementById('dailySteps').textContent = steps.toLocaleString('pt-BR');
+                document.getElementById('metaPassos').textContent = goal.toLocaleString('pt-BR');
+                document.getElementById('percentualMeta').textContent = percentage.toFixed(0);
+                
+                const progressBar = document.getElementById('stepsProgress');
+                if (progressBar) {
+                    progressBar.style.width = percentage + '%';
+                }
+
+                // Atualizar calorias e distância
+                if (atividadeFisica.calorias !== undefined) {
+                    document.getElementById('calorias').textContent = atividadeFisica.calorias.toFixed(0) + ' kcal';
+                }
+                if (atividadeFisica.distancia !== undefined) {
+                    document.getElementById('distancia').textContent = atividadeFisica.distancia.toFixed(2) + ' km';
+                }
+                if (atividadeFisica.ultimaAtualizacao) {
+                    document.getElementById('ultimaAtualizacao').textContent = atividadeFisica.ultimaAtualizacao;
+                }
+            }
+
+            // Atualizar histórico de quedas
+            if (data.dadosTempoReal && data.dadosTempoReal.monitoramentoQuedas) {
+                const totalQuedas = data.dadosTempoReal.monitoramentoQuedas.totalQuedas30Dias || 0;
+                document.getElementById('fallsCount').textContent = totalQuedas;
+            }
+
+            // Atualizar lista de quedas
+            if (data.historicoQuedas) {
+                updateFallsList(data.historicoQuedas);
+            }
+
+            // Verificar alertas de queda
+            if (data.dadosTempoReal && data.dadosTempoReal.alertas && data.dadosTempoReal.alertas.quedaDetectada) {
+                const alertas = data.dadosTempoReal.alertas;
+                showFallAlert(alertas);
+            }
+        }
+
+        // Função para atualizar lista de quedas
+        function updateFallsList(historicoQuedas) {
+            const fallsList = document.getElementById('fallsList');
+            fallsList.innerHTML = '';
+
+            const quedas = Object.values(historicoQuedas).sort((a, b) => {
+                return new Date(b.data + ' ' + b.horario) - new Date(a.data + ' ' + a.horario);
+            });
+
+            quedas.slice(0, 5).forEach(queda => {
+                const severityMap = {
+                    'Leve': 'low',
+                    'Moderada': 'medium',
+                    'Grave': 'high'
+                };
+
+                const severity = severityMap[queda.intensidade] || 'low';
+                
+                const fallItem = document.createElement('div');
+                fallItem.className = 'fall-item';
+                
+                const dataFormatada = new Date(queda.data).toLocaleDateString('pt-BR', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+
+                fallItem.innerHTML = `
+                    <div>
+                        <div class="fall-date">${dataFormatada}</div>
+                        <div class="fall-time">${queda.horario}</div>
+                    </div>
+                    <div class="fall-severity ${severity}">${queda.intensidade}</div>
+                `;
+                
+                fallsList.appendChild(fallItem);
+            });
+        }
+
+        // Função para mostrar alerta de queda
+        function showFallAlert(alertas) {
+            lastFallCoords = {
+                lat: alertas.coordenadasQueda.lat,
+                lng: alertas.coordenadasQueda.lng
+            };
+
+            document.getElementById('fallLocation').textContent = alertas.localizacaoQueda;
+            document.getElementById('fallCoords').textContent = 
+                `Lat: ${alertas.coordenadasQueda.lat}, Long: ${alertas.coordenadasQueda.lng}`;
+            document.getElementById('fallTime').textContent = alertas.horarioAlerta;
+
+            // Abrir modal de alerta
+            openModal('fallModal');
+        }
+
+        // Função para abrir modal
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        // Função para fechar modal
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Função para simular uma queda (mantida para testes)
+        function simulateFall() {
+            if (currentUserData && currentUserData.dadosTempoReal && currentUserData.dadosTempoReal.alertas) {
+                const alertas = currentUserData.dadosTempoReal.alertas;
+                showFallAlert(alertas);
+            } else {
+                // Fallback se não houver dados do Firebase
+                const locations = [
+                    { name: 'Sala de Estar', address: 'Rua das Flores, 123 - Sala', coords: 'Lat: -27.5954, Long: -48.5480', lat: -27.5954, lng: -48.5480 },
+                    { name: 'Cozinha', address: 'Rua das Flores, 123 - Cozinha', coords: 'Lat: -27.5955, Long: -48.5481', lat: -27.5955, lng: -48.5481 },
+                    { name: 'Quarto', address: 'Rua das Flores, 123 - Quarto', coords: 'Lat: -27.5956, Long: -48.5479', lat: -27.5956, lng: -48.5479 },
+                    { name: 'Banheiro', address: 'Rua das Flores, 123 - Banheiro', coords: 'Lat: -27.5953, Long: -48.5482', lat: -27.5953, lng: -48.5482 },
+                    { name: 'Corredor', address: 'Rua das Flores, 123 - Corredor', coords: 'Lat: -27.5957, Long: -48.5483', lat: -27.5957, lng: -48.5483 }
+                ];
+                
+                const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+                const now = new Date();
+                const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                // Armazenar coordenadas da queda
+                lastFallCoords = { lat: randomLocation.lat, lng: randomLocation.lng };
+                
+                // Preencher dados do modal
+                document.getElementById('fallLocation').textContent = randomLocation.name + '\n' + randomLocation.address;
+                document.getElementById('fallCoords').textContent = randomLocation.coords;
+                document.getElementById('fallTime').textContent = time;
+                
+                // Abrir modal
+                openModal('fallModal');
+            }
+        }
+
+        // Função para adicionar queda à lista (mantida para compatibilidade)
+        function addFallToList(date, severity) {
+            const fallsList = document.getElementById('fallsList');
+            const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const severityLabels = {
+                'low': 'Leve',
+                'medium': 'Moderada',
+                'high': 'Grave'
+            };
+            
+            const newFall = document.createElement('div');
+            newFall.className = 'fall-item';
+            newFall.innerHTML = `
+                <div>
+                    <div class="fall-date">${dateStr}</div>
+                    <div class="fall-time">${timeStr}</div>
+                </div>
+                <div class="fall-severity ${severity}">${severityLabels[severity]}</div>
+            `;
+            
+            fallsList.insertBefore(newFall, fallsList.firstChild);
+            
+            // Atualizar contador
+            const fallsCount = document.getElementById('fallsCount');
+            fallsCount.textContent = parseInt(fallsCount.textContent) + 1;
+        }
+
+        // Função para localizar o idoso
+        function locateElder() {
+            if (currentUserData && currentUserData.dadosTempoReal && currentUserData.dadosTempoReal.statusAtual) {
+                const statusAtual = currentUserData.dadosTempoReal.statusAtual;
+                const coordenadas = statusAtual.coordenadas;
+                
+                // Atualizar coordenadas globais
+                lastFallCoords = {
+                    lat: coordenadas.lat,
+                    lng: coordenadas.lng
+                };
+
+                // Atualizar modal com dados reais
+                const locationItems = document.querySelectorAll('#locationModal .modal-info-value');
+                if (locationItems[0]) {
+                    locationItems[0].textContent = statusAtual.localizacaoAtual;
+                }
+                if (locationItems[1]) {
+                    locationItems[1].textContent = `Lat: ${coordenadas.lat}\nLong: ${coordenadas.lng}`;
+                }
+                if (locationItems[2]) {
+                    locationItems[2].textContent = `Atualizado: ${statusAtual.ultimaAtividade}`;
+                }
+            }
+            
+            openModal('locationModal');
+        }
+
+        // Função para abrir Google Maps (localização geral)
+        function openGoogleMaps() {
+            const lat = lastFallCoords.lat;
+            const lng = lastFallCoords.lng;
+            const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            window.open(url, '_blank');
+        }
+
+        // Função para abrir Google Maps (localização da queda)
+        function openFallGoogleMaps() {
+            const url = `https://www.google.com/maps/search/?api=1&query=${lastFallCoords.lat},${lastFallCoords.lng}`;
+            window.open(url, '_blank');
+        }
+
+        // Inicializar conexão Firebase quando a página carregar
+        window.addEventListener('load', () => {
+            setTimeout(connectToFirebase, 1000);
+        });
+
+        // Simular atualização de dados em tempo real (backup)
+        function updateData() {
+            console.log('Verificando atualizações...');
+        }
+
+        // Verificar atualizações a cada 30 segundos
+        setInterval(updateData, 30000);
+    </script>
+</body>
+</html>
