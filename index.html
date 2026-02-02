@@ -662,6 +662,8 @@
         let currentUserData = null;
         let updateCount = 0;
         let userRef = null;
+        let lastAlertShown = null; // Armazena o horário do último alerta mostrado
+        let alertModalOpen = false; // Flag para saber se o modal está aberto
 
         // Função para atualizar indicador de sincronização
         function updateSyncIndicator(status, message) {
@@ -882,10 +884,16 @@
                 updateFallsList(data.historicoQuedas);
             }
 
-            // Verificar alertas de queda
+            // Verificar alertas de queda - EVITA REPETIÇÕES
             if (data.dadosTempoReal && data.dadosTempoReal.alertas && data.dadosTempoReal.alertas.quedaDetectada) {
                 const alertas = data.dadosTempoReal.alertas;
-                showFallAlert(alertas);
+                
+                // Só mostra alerta se for um novo (baseado no horário) E o modal não estiver aberto
+                if (alertas.horarioAlerta !== lastAlertShown && !alertModalOpen) {
+                    console.log('🚨 NOVO ALERTA DE QUEDA DETECTADO!');
+                    lastAlertShown = alertas.horarioAlerta;
+                    showFallAlert(alertas);
+                }
             }
         }
 
@@ -940,6 +948,9 @@
                 `Lat: ${alertas.coordenadasQueda.lat}, Long: ${alertas.coordenadasQueda.lng}`;
             document.getElementById('fallTime').textContent = alertas.horarioAlerta;
 
+            // Marcar que o modal está aberto
+            alertModalOpen = true;
+
             // Abrir modal de alerta
             openModal('fallModal');
         }
@@ -949,6 +960,9 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.add('active');
+                if (modalId === 'fallModal') {
+                    alertModalOpen = true;
+                }
             }
         }
 
@@ -957,6 +971,9 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
+                if (modalId === 'fallModal') {
+                    alertModalOpen = false;
+                }
             }
         }
 
@@ -964,6 +981,9 @@
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal-overlay')) {
                 e.target.classList.remove('active');
+                if (e.target.id === 'fallModal') {
+                    alertModalOpen = false;
+                }
             }
         });
 
