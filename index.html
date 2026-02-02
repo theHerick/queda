@@ -722,7 +722,7 @@
             if (!db || !ref || !onValue) {
                 console.error('Firebase não inicializado ainda. Tentando novamente...');
                 updateSyncIndicator('syncing', 'Aguardando Firebase...');
-                setTimeout(connectToFirebase, 500);
+                setTimeout(connectToFirebase, 100);
                 return;
             }
 
@@ -756,9 +756,9 @@
 
             console.log('👂 Listener ativo! Atualizações automáticas ativadas.');
             
-            // Força atualização a cada 5 segundos
-            setInterval(forceUpdate, 5000);
-            console.log('⏰ Atualização automática a cada 5 segundos configurada!');
+            // Força atualização a cada 1 segundo para zero delay
+            setInterval(forceUpdate, 1000);
+            console.log('⚡ Atualização ultra-rápida a cada 1 segundo configurada!');
         }
 
         // Função para atualizar a interface com dados do Firebase
@@ -1070,18 +1070,25 @@
             window.open(url, '_blank');
         }
 
-        // Inicializar conexão Firebase quando a página carregar
+        // Inicializar conexão Firebase IMEDIATAMENTE
         window.addEventListener('load', () => {
-            setTimeout(connectToFirebase, 1000);
+            connectToFirebase();
         });
+        
+        // Tentar conectar mesmo antes do load completo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', connectToFirebase);
+        } else {
+            setTimeout(connectToFirebase, 100);
+        }
 
         // Simular atualização de dados em tempo real (backup)
         function updateData() {
             console.log('Verificando atualizações...');
         }
 
-        // Verificar atualizações a cada 30 segundos
-        setInterval(updateData, 30000);
+        // Verificar atualizações a cada 1 segundo
+        setInterval(updateData, 1000);
     </script>
 </body>
 </html>
