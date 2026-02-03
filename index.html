@@ -303,6 +303,11 @@
             color: #155724;
         }
 
+        .elderly-status.inactive {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -476,12 +481,21 @@
             color: #155724;
         }
 
+        .status.inactive {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
         .status-indicator {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             background: currentColor;
             animation: pulse 2s infinite;
+        }
+
+        .status.inactive .status-indicator {
+            animation: none;
         }
 
         .card {
@@ -1040,6 +1054,8 @@
             lastAlertShown: null,
             alertModalOpen: false,
             lastFallCoords: { lat: -27.5954, lng: -48.5480 },
+            lastUpdateTimestamp: null,
+            statusCheckInterval: null,
 
             init() {
                 console.log('🚀 App inicializada');
@@ -1111,9 +1127,34 @@
             },
 
             showMonitoring() {
+                // Verificar status a cada 5 segundos
+                if (this.statusCheckInterval) {
+                    clearInterval(this.statusCheckInterval);
+                }
+                this.statusCheckInterval = setInterval(() => this.checkDeviceStatus(), 5000);
                 this.showView('monitoringView');
                 setTimeout(() => this.connectToFirebase(), 100);
+            },if (this.statusCheckInterval) {
+                    clearInterval(this.statusCheckInterval);
+                }
+                this.showView('loginView');
             },
+
+            checkDeviceStatus() {
+                if (!this.lastUpdateTimestamp) return;
+                
+                const now = Date.now();
+                const timeSinceUpdate = now - this.lastUpdateTimestamp;
+                const maxInactiveTime = 30000; // 30 segundos sem atualização = desativado
+                
+                if (timeSinceUpdate > maxInactiveTime) {
+                    const statusBadge = document.getElementById('statusBadge');
+                    if (statusBadge) {
+                        statusBadge.className = 'status inactive';
+                        statusBadge.innerHTML = '<span class="status-indicator"></span><span>Desativado</span>';
+                    }
+                    this.updateSyncIndicator('error', 'Dispositivo sem resposta');
+                }
 
             logout() {
                 localStorage.removeItem('isLoggedIn');
@@ -1179,7 +1220,8 @@
                 indicator.className = 'sync-indicator ' + status;
                 indicator.innerHTML = `<div class="sync-dot"></div><span>${message}</span>`;
             },
-
+this.lastUpdateTimestamp = Date.now(); // Registrar timestamp da atualização
+                        
             connectToFirebase() {
                 const db = window.firebaseDb;
                 const ref = window.firebaseRef;
@@ -1220,6 +1262,7 @@
                 
                 window.firebaseOnValue(this.userRef, (snapshot) => {
                     if (snapshot.exists()) {
+                        this.lastUpdateTimestamp = Date.now(); // Registrar timestamp da atualização
                         this.currentUserData = snapshot.val();
                         this.updateUIWithFirebaseData(this.currentUserData);
                     }
@@ -1254,8 +1297,23 @@
                     const { statusAtual, atividadeFisica, dispositivo, monitoramentoQuedas, alertas } = data.dadosTempoReal;
 
                     if (statusAtual) {
-                        const statusBadge = document.getElementById('statusBadge');
-                        statusBadge.className = statusAtual.ativo ? 'status active' : 'status inactive';
+                        
+                        // Verificar se há timestamp de última atualização
+                        if (this.lastUpdateTimestamp) {
+                            const timeSinceUpdate = Date.now() - this.lastUpdateTimestamp;
+                            const maxInactiveTime = 30000; // 30 segundos
+                            
+                            if (timeSinceUpdate > maxInactiveTime || !statusAtual.ativo) {
+                                statusBadge.className = 'status inactive';
+                                statusBadge.innerHTML = '<span class="status-indicator"></span><span>Desativado</span>';
+                            } else {
+                                statusBadge.className = 'status active';
+                                statusBadge.innerHTML = '<span class="status-indicator"></span><span>Ativo</span>';
+                            }
+                        } else {
+                            statusBadge.className = statusAtual.ativo ? 'status active' : 'status inactive';
+                            statusBadge.innerHTML = `<span class="status-indicator"></span><span>${statusAtual.ativo ? 'Ativo' : 'Desativado'}</span>`;
+                        }
                         statusBadge.innerHTML = `<span class="status-indicator"></span><span>${statusAtual.ativo ? 'Ativo' : 'Inativo'}</span>`;
                         
                         if (statusAtual.bateria !== undefined) {
