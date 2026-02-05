@@ -1220,7 +1220,6 @@
                 indicator.className = 'sync-indicator ' + status;
                 indicator.innerHTML = `<div class="sync-dot"></div><span>${message}</span>`;
             },
-this.lastUpdateTimestamp = Date.now(); // Registrar timestamp da atualização
                         
             connectToFirebase() {
                 const db = window.firebaseDb;
