@@ -1062,6 +1062,7 @@
             currentUserData: null,
             updateCount: 0,
             userRef: null,
+            dashboardListenerActive: false,
             lastAlertShown: null,
             alertModalOpen: false,
             lastFallCoords: { lat: -27.5954, lng: -48.5480 },
@@ -1149,6 +1150,11 @@
                 this.showView('dashboardView');
                 document.getElementById('usernameDisplay').textContent = 
                     localStorage.getItem('username') || 'Herick';
+                
+                // Conectar ao Firebase para atualizar dados do dashboard
+                if (!this.dashboardListenerActive) {
+                    this.connectToDashboardFirebase();
+                }
             },
 
             showMonitoring() {
@@ -1159,6 +1165,68 @@
                 this.statusCheckInterval = setInterval(() => this.checkDeviceStatus(), 5000);
                 this.showView('monitoringView');
                 setTimeout(() => this.connectToFirebase(), 100);
+            },
+
+            connectToDashboardFirebase() {
+                const db = window.firebaseDb;
+                const ref = window.firebaseRef;
+                const onValue = window.firebaseOnValue;
+
+                if (!db || !ref || !onValue) {
+                    console.error('Firebase não inicializado no dashboard');
+                    setTimeout(() => this.connectToDashboardFirebase(), 100);
+                    return;
+                }
+
+                console.log('🔥 Conectando ao Firebase para o dashboard');
+                this.dashboardListenerActive = true;
+                const userRef = ref(db, 'usuarios/jose_silva');
+
+                onValue(userRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        console.log('📊 Dados atualizados no dashboard');
+                        this.updateDashboardCard(data);
+                    }
+                });
+            },
+
+            updateDashboardCard(data) {
+                // Atualizar nome e idade
+                const nameElement = document.querySelector('.elderly-info h3');
+                const ageElement = document.querySelector('.elderly-age');
+                
+                if (nameElement && data.nome) {
+                    nameElement.textContent = data.nome;
+                }
+                if (ageElement && data.idade) {
+                    ageElement.textContent = data.idade + ' anos';
+                }
+
+                // Atualizar status
+                const statusElement = document.querySelector('.elderly-status');
+                if (statusElement && data.dadosTempoReal && data.dadosTempoReal.statusAtual) {
+                    const isActive = data.dadosTempoReal.statusAtual.ativo;
+                    statusElement.className = isActive ? 'elderly-status active' : 'elderly-status inactive';
+                    statusElement.innerHTML = `
+                        <span class="status-dot"></span>
+                        <span>${isActive ? 'Ativo' : 'Inativo'}</span>
+                    `;
+                }
+
+                // Atualizar passos
+                const stepsElement = document.querySelector('.stat-item:nth-child(1) .stat-value');
+                if (stepsElement && data.dadosTempoReal && data.dadosTempoReal.atividadeFisica) {
+                    const steps = data.dadosTempoReal.atividadeFisica.passosDiarios || 0;
+                    stepsElement.textContent = steps.toLocaleString('pt-BR');
+                }
+
+                // Atualizar quedas
+                const fallsElement = document.querySelector('.stat-item:nth-child(2) .stat-value');
+                if (fallsElement && data.dadosTempoReal && data.dadosTempoReal.monitoramentoQuedas) {
+                    const falls = data.dadosTempoReal.monitoramentoQuedas.totalQuedas30Dias || 0;
+                    fallsElement.textContent = falls;
+                }
             },
 
             logout() {
