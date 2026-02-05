@@ -1189,6 +1189,16 @@
                         this.updateDashboardCard(data);
                     }
                 });
+                
+                // Verificar status a cada 5 segundos
+                setInterval(() => {
+                    onValue(userRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            this.updateDashboardCard(data);
+                        }
+                    }, () => {}, { onlyOnce: true });
+                }, 5000);
             },
 
             updateDashboardCard(data) {
@@ -1203,14 +1213,29 @@
                     ageElement.textContent = data.idade + ' anos';
                 }
 
-                // Atualizar status
+                // Atualizar status com verificação de tempo de inatividade
                 const statusElement = document.querySelector('.elderly-status');
                 if (statusElement && data.dadosTempoReal && data.dadosTempoReal.statusAtual) {
-                    const isActive = data.dadosTempoReal.statusAtual.ativo;
+                    let isActive = data.dadosTempoReal.statusAtual.ativo;
+                    
+                    // Verificar se há timestamp de última atualização
+                    if (data.dadosTempoReal.statusAtual.ultimaAtualizacao) {
+                        const lastUpdate = new Date(data.dadosTempoReal.statusAtual.ultimaAtualizacao).getTime();
+                        const now = Date.now();
+                        const timeSinceUpdate = now - lastUpdate;
+                        const maxInactiveTime = 30000; // 30 segundos sem atualização = desativado
+                        
+                        // Se passou muito tempo sem atualização, considerar como desativado
+                        if (timeSinceUpdate > maxInactiveTime) {
+                            isActive = false;
+                            console.log(`⚠️ Dispositivo inativo há ${Math.floor(timeSinceUpdate / 1000)}s`);
+                        }
+                    }
+                    
                     statusElement.className = isActive ? 'elderly-status active' : 'elderly-status inactive';
                     statusElement.innerHTML = `
                         <span class="status-dot"></span>
-                        <span>${isActive ? 'Ativo' : 'Inativo'}</span>
+                        <span>${isActive ? 'Ativo' : 'Desativado'}</span>
                     `;
                 }
 
