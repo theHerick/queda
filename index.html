@@ -1134,9 +1134,14 @@
                 this.statusCheckInterval = setInterval(() => this.checkDeviceStatus(), 5000);
                 this.showView('monitoringView');
                 setTimeout(() => this.connectToFirebase(), 100);
-            },if (this.statusCheckInterval) {
+            },
+
+            logout() {
+                if (this.statusCheckInterval) {
                     clearInterval(this.statusCheckInterval);
                 }
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
                 this.showView('loginView');
             },
 
@@ -1155,11 +1160,6 @@
                     }
                     this.updateSyncIndicator('error', 'Dispositivo sem resposta');
                 }
-
-            logout() {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('username');
-                this.showView('loginView');
             },
 
             openAddModal() {
@@ -1241,6 +1241,7 @@ this.lastUpdateTimestamp = Date.now(); // Registrar timestamp da atualização
                     
                     if (snapshot.exists()) {
                         this.currentUserData = snapshot.val();
+                        this.lastUpdateTimestamp = Date.now();
                         const timestamp = new Date().toLocaleTimeString('pt-BR');
                         console.log(`✅ Atualização #${this.updateCount} às ${timestamp}`);
                         
@@ -1297,6 +1298,7 @@ this.lastUpdateTimestamp = Date.now(); // Registrar timestamp da atualização
                     const { statusAtual, atividadeFisica, dispositivo, monitoramentoQuedas, alertas } = data.dadosTempoReal;
 
                     if (statusAtual) {
+                        const statusBadge = document.getElementById('statusBadge');
                         
                         // Verificar se há timestamp de última atualização
                         if (this.lastUpdateTimestamp) {
@@ -1314,7 +1316,6 @@ this.lastUpdateTimestamp = Date.now(); // Registrar timestamp da atualização
                             statusBadge.className = statusAtual.ativo ? 'status active' : 'status inactive';
                             statusBadge.innerHTML = `<span class="status-indicator"></span><span>${statusAtual.ativo ? 'Ativo' : 'Desativado'}</span>`;
                         }
-                        statusBadge.innerHTML = `<span class="status-indicator"></span><span>${statusAtual.ativo ? 'Ativo' : 'Inativo'}</span>`;
                         
                         if (statusAtual.bateria !== undefined) {
                             document.getElementById('bateria').textContent = statusAtual.bateria.toFixed(1);
