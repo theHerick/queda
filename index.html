@@ -860,28 +860,54 @@
             </div>
 
             <div class="card">
+                <div class="card-title">� Sensor de Movimento (MPU6050)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div class="modal-info-item" style="margin: 0; background: #e6f7ff; border-left: 4px solid #1890ff;">
+                        <div class="modal-info-label">⚡ Aceleração Atual</div>
+                        <div class="card-value" style="font-size: 24px; color: #1890ff;">
+                            <span id="aceleracaoAtual">1.00</span> g
+                        </div>
+                    </div>
+                    <div class="modal-info-item" id="estadoSensor" style="margin: 0; background: #d4edda; border-left: 4px solid #28a745;">
+                        <div class="modal-info-label">🎯 Estado do Sistema</div>
+                        <div class="modal-info-value" style="font-size: 16px; color: #28a745; font-weight: 600;" id="estadoSistema">Normal</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="modal-info-item" style="margin: 0;">
+                        <div class="modal-info-label">🎚️ Limiar Queda</div>
+                        <div class="modal-info-value" id="limiarQueda">< 0.6 g</div>
+                    </div>
+                    <div class="modal-info-item" style="margin: 0;">
+                        <div class="modal-info-label">💥 Limiar Impacto</div>
+                        <div class="modal-info-value" id="limiarImpacto">> 2.5 g</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
                 <div class="card-title">📊 Atividade Física</div>
                 <div class="card-value">
-                    <span id="dailySteps">3,847</span>
+                    <span id="dailySteps">0</span>
                     <span style="font-size: 18px; color: #48bb78;">passos</span>
                 </div>
-                <div class="card-subtitle">Meta: <span id="metaPassos">5,000</span> passos (<span id="percentualMeta">77</span>%)</div>
+                <div class="card-subtitle">Meta: <span id="metaPassos">5,000</span> passos (<span id="percentualMeta">0</span>%)</div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 77%;" id="stepsProgress"></div>
+                    <div class="progress-fill" style="width: 0%;" id="stepsProgress"></div>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                     <div class="modal-info-item" style="margin: 0;">
                         <div class="modal-info-label">🔥 Calorias</div>
-                        <div class="modal-info-value" id="calorias">154 kcal</div>
+                        <div class="modal-info-value" id="calorias">0 kcal</div>
                     </div>
                     <div class="modal-info-item" style="margin: 0;">
                         <div class="modal-info-label">📏 Distância</div>
-                        <div class="modal-info-value" id="distancia">2.69 km</div>
+                        <div class="modal-info-value" id="distancia">0 km</div>
                     </div>
                 </div>
                 <div class="card-subtitle" style="margin-top: 10px;">
-                    Última atualização: <span id="ultimaAtualizacao">Há 2 min</span>
+                    Última atualização: <span id="ultimaAtualizacao">--</span>
                 </div>
             </div>
 
@@ -932,19 +958,32 @@
             </div>
 
             <div class="card">
-                <div class="card-title">⚠️ Histórico de Quedas</div>
-                <div class="card-value" style="font-size: 28px; color: #e53e3e;">
-                    <span id="fallsCount">3</span>
-                    <span style="font-size: 14px; color: #718096;">quedas nos últimos 30 dias</span>
+                <div class="card-title">⚠️ Monitoramento de Quedas</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div class="modal-info-item" style="margin: 0;">
+                        <div class="modal-info-label">📊 Total Hoje</div>
+                        <div class="card-value" style="font-size: 24px; color: #e53e3e;">
+                            <span id="quedasHoje">0</span>
+                        </div>
+                    </div>
+                    <div class="modal-info-item" style="margin: 0;">
+                        <div class="modal-info-label">📅 Últimos 30 dias</div>
+                        <div class="card-value" style="font-size: 24px; color: #e53e3e;">
+                            <span id="fallsCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-info-item" id="ultimaQuedaInfo" style="background: #f7fafc; display: none;">
+                    <div class="modal-info-label">🕐 Última Queda</div>
+                    <div class="modal-info-value" id="ultimaQuedaHorario">--</div>
+                    <div style="margin-top: 5px;">
+                        <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;" id="ultimaQuedaIntensidade"></span>
+                    </div>
                 </div>
                 
-                <div class="falls-list" id="fallsList">
-                    <div class="fall-item">
-                        <div>
-                            <div class="fall-date">10 Dez 2025</div>
-                            <div class="fall-time">14:32</div>
-                        </div>
-                        <div class="fall-severity low">Leve</div>
+                <div class="falls-list" id="fallsList" style="margin-top: 15px;">
+                    <div class="modal-info-item" style="background: #f7fafc; text-align: center; color: #718096;">
+                        Nenhuma queda registrada
                     </div>
                 </div>
             </div>
@@ -1072,6 +1111,23 @@
             init() {
                 console.log('🚀 App inicializada');
                 
+                // Aguardar Firebase carregar
+                const waitForFirebase = () => {
+                    if (!window.firebaseDb || !window.firebaseRef || !window.firebaseOnValue) {
+                        console.log('⏳ Aguardando Firebase...');
+                        setTimeout(waitForFirebase, 100);
+                        return;
+                    }
+                    console.log('✅ Firebase carregado!');
+                    this.setupEventListeners();
+                };
+                
+                waitForFirebase();
+            },
+
+            setupEventListeners() {
+                console.log('🔧 Configurando event listeners');
+                
                 // Login form
                 const loginForm = document.getElementById('loginForm');
                 if (!loginForm) {
@@ -1090,7 +1146,7 @@
                         console.log('✅ Login bem-sucedido!');
                         localStorage.setItem('isLoggedIn', 'true');
                         localStorage.setItem('username', username);
-                        this.showDashboard();
+                        app.showDashboard();
                     } else {
                         console.log('❌ Credenciais inválidas');
                         document.getElementById('errorMessage').classList.add('show');
@@ -1104,12 +1160,12 @@
                 document.getElementById('elderlyForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     alert('✅ Idoso salvo com sucesso!\n\n(Funcionalidade em desenvolvimento)');
-                    this.closeModal('elderlyModal');
+                    app.closeModal('elderlyModal');
                 });
 
                 // Check if logged in
                 if (localStorage.getItem('isLoggedIn') === 'true') {
-                    this.showDashboard();
+                    app.showDashboard();
                 }
 
                 // Close modals on outside click
@@ -1118,11 +1174,19 @@
                         if (e.target === modal) {
                             modal.classList.remove('active');
                             if (modal.id === 'fallModal') {
-                                this.alertModalOpen = false;
+                                app.alertModalOpen = false;
                             }
                         }
                     });
                 });
+                
+                // Check if logged in
+                if (localStorage.getItem('isLoggedIn') === 'true') {
+                    console.log('✅ Usuário já logado, redirecionando...');
+                    app.showDashboard();
+                } else {
+                    console.log('ℹ️ Usuário não logado');
+                }
             },
 
             showView(viewId) {
@@ -1148,12 +1212,14 @@
             showDashboard() {
                 console.log('📊 Mostrando dashboard');
                 this.showView('dashboardView');
-                document.getElementById('usernameDisplay').textContent = 
-                    localStorage.getItem('username') || 'Herick';
+                const usernameDisplay = document.getElementById('usernameDisplay');
+                if (usernameDisplay) {
+                    usernameDisplay.textContent = localStorage.getItem('username') || 'Herick';
+                }
                 
                 // Conectar ao Firebase para atualizar dados do dashboard
                 if (!this.dashboardListenerActive) {
-                    this.connectToDashboardFirebase();
+                    setTimeout(() => this.connectToDashboardFirebase(), 100);
                 }
             },
 
@@ -1475,14 +1541,93 @@
 
                     if (monitoramentoQuedas) {
                         document.getElementById('fallsCount').textContent = monitoramentoQuedas.totalQuedas30Dias || 0;
-                    }
-
-                    if (alertas && alertas.quedaDetectada) {
-                        if (alertas.horarioAlerta !== this.lastAlertShown && !this.alertModalOpen) {
-                            console.log('🚨 NOVO ALERTA DE QUEDA!');
-                            this.lastAlertShown = alertas.horarioAlerta;
-                            this.showFallAlert(alertas);
+                    document.getElementById('quedasHoje').textContent = monitoramentoQuedas.totalQuedasHoje || 0;
+                    
+                    // Exibir informações da última queda
+                    if (monitoramentoQuedas.ultimaQueda && monitoramentoQuedas.ultimaQueda !== 'Nenhuma') {
+                        const ultimaQuedaInfo = document.getElementById('ultimaQuedaInfo');
+                        ultimaQuedaInfo.style.display = 'block';
+                        document.getElementById('ultimaQuedaHorario').textContent = monitoramentoQuedas.ultimaQueda;
+                        
+                        if (monitoramentoQuedas.ultimaIntensidade) {
+                            const intensidadeEl = document.getElementById('ultimaQuedaIntensidade');
+                            const severityMap = {
+                                'Leve': { bg: '#fed7d7', color: '#c53030' },
+                                'Moderada': { bg: '#feebc8', color: '#c05621' },
+                                'Grave': { bg: '#e53e3e', color: 'white' },
+                                'Emergência Manual': { bg: '#742a2a', color: 'white' }
+                            };
+                            const style = severityMap[monitoramentoQuedas.ultimaIntensidade] || severityMap['Leve'];
+                            intensidadeEl.textContent = monitoramentoQuedas.ultimaIntensidade;
+                            intensidadeEl.style.background = style.bg;
+                            intensidadeEl.style.color = style.color;
                         }
+                    } else {
+                        document.getElementById('ultimaQuedaInfo').style.display = 'none';
+                    }
+                }
+
+                // Atualizar dados do sensor MPU6050
+                if (data.dadosTempoReal && data.dadosTempoReal.sensor) {
+                    const sensor = data.dadosTempoReal.sensor;
+                    
+                    if (sensor.aceleracaoAtual !== undefined) {
+                        document.getElementById('aceleracaoAtual').textContent = sensor.aceleracaoAtual.toFixed(2);
+                        
+                        // Atualizar cor baseado na aceleração
+                        const accelEl = document.getElementById('aceleracaoAtual').parentElement;
+                        if (sensor.aceleracaoAtual < 0.6) {
+                            accelEl.style.color = '#e53e3e'; // Vermelho para queda livre
+                        } else if (sensor.aceleracaoAtual > 2.5) {
+                            accelEl.style.color = '#c53030'; // Vermelho escuro para impacto
+                        } else {
+                            accelEl.style.color = '#1890ff'; // Azul para normal
+                        }
+                    }
+                    
+                    if (sensor.limiarQueda !== undefined) {
+                        document.getElementById('limiarQueda').textContent = '< ' + sensor.limiarQueda + ' g';
+                    }
+                    
+                    if (sensor.limiarImpacto !== undefined) {
+                        document.getElementById('limiarImpacto').textContent = '> ' + sensor.limiarImpacto + ' g';
+                    }
+                }
+                
+                // Determinar e exibir estado do sistema
+                let estadoSistema = 'Normal';
+                let estadoBg = '#d4edda';
+                let estadoBorder = '#28a745';
+                let estadoColor = '#28a745';
+                
+                if (alertas && alertas.quedaDetectada) {
+                    if (alertas.emergenciaManual) {
+                        estadoSistema = '🆘 Emergência Manual';
+                        estadoBg = '#742a2a';
+                        estadoBorder = '#742a2a';
+                        estadoColor = 'white';
+                    } else {
+                        estadoSistema = '💥 Queda Detectada';
+                        estadoBg = '#fed7d7';
+                        estadoBorder = '#e53e3e';
+                        estadoColor = '#c53030';
+                    }
+                } else if (data.dadosTempoReal && data.dadosTempoReal.sensor) {
+                    if (data.dadosTempoReal.sensor.aceleracaoAtual < 0.6) {
+                        estadoSistema = '⚠️ Queda Livre';
+                        estadoBg = '#feebc8';
+                        estadoBorder = '#ffc107';
+                        estadoColor = '#c05621';
+                    }
+                }
+                
+                const estadoSensorEl = document.getElementById('estadoSensor');
+                estadoSensorEl.style.background = estadoBg;
+                estadoSensorEl.style.borderLeft = '4px solid ' + estadoBorder;
+                
+                const estadoSistemaEl = document.getElementById('estadoSistema');
+                estadoSistemaEl.textContent = estadoSistema;
+                estadoSistemaEl.style.color = estadoColor;
                     }
                 }
 
@@ -1493,24 +1638,51 @@
 
             updateFallsList(historicoQuedas) {
                 const fallsList = document.getElementById('fallsList');
+                
+                if (!historicoQuedas || Object.keys(historicoQuedas).length === 0) {
+                    fallsList.innerHTML = `
+                        <div class="modal-info-item" style="background: #f7fafc; text-align: center; color: #718096;">
+                            Nenhuma queda registrada
+                        </div>
+                    `;
+                    return;
+                }
+                
                 fallsList.innerHTML = '';
 
                 const quedas = Object.values(historicoQuedas).sort((a, b) => {
-                    return new Date(b.data + ' ' + b.horario) - new Date(a.data + ' ' + a.horario);
+                    const dateA = new Date(a.data + ' ' + a.horario);
+                    const dateB = new Date(b.data + ' ' + b.horario);
+                    return dateB - dateA;
                 });
 
                 quedas.slice(0, 5).forEach(queda => {
-                    const severityMap = { 'Leve': 'low', 'Moderada': 'medium', 'Grave': 'high' };
+                    const severityMap = { 
+                        'Leve': 'low', 
+                        'Moderada': 'medium', 
+                        'Grave': 'high',
+                        'Emergência Manual': 'high'
+                    };
                     const severity = severityMap[queda.intensidade] || 'low';
-                    const dataFormatada = new Date(queda.data).toLocaleDateString('pt-BR', { 
-                        day: '2-digit', month: 'short', year: 'numeric' 
-                    });
+                    
+                    let dataFormatada;
+                    try {
+                        dataFormatada = new Date(queda.data).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', month: 'short', year: 'numeric' 
+                        });
+                    } catch (e) {
+                        dataFormatada = queda.data;
+                    }
+
+                    const emergenciaIcon = queda.emergenciaManual ? ' 🆘' : '';
+                    const aceleracaoInfo = queda.aceleracao ? `<div style="font-size: 11px; color: #a0aec0; margin-top: 2px;">📈 ${queda.aceleracao.toFixed(2)} g</div>` : '';
 
                     fallsList.innerHTML += `
                         <div class="fall-item">
                             <div>
-                                <div class="fall-date">${dataFormatada}</div>
+                                <div class="fall-date">${dataFormatada}${emergenciaIcon}</div>
                                 <div class="fall-time">${queda.horario}</div>
+                                ${aceleracaoInfo}
                             </div>
                             <div class="fall-severity ${severity}">${queda.intensidade}</div>
                         </div>
@@ -1529,7 +1701,36 @@
                     `Lat: ${alertas.coordenadasQueda.lat}, Long: ${alertas.coordenadasQueda.lng}`;
                 document.getElementById('fallTime').textContent = alertas.horarioAlerta;
 
+                // Atualizar título do modal baseado no tipo de alerta
+                const modalTitle = document.querySelector('#fallModal .modal-title');
+                const modalIcon = document.querySelector('#fallModal .modal-icon');
+                
+                if (alertas.emergenciaManual) {
+                    modalTitle.textContent = 'Emergência Manual - Botão Pressionado';
+                    modalIcon.textContent = '🆘';
+                } else {
+                    modalTitle.textContent = 'Alerta de Queda Detectada';
+                    modalIcon.textContent = '🚨';
+                }
+                
+                // Mostrar intensidade se disponível
+                const statusValue = document.querySelector('#fallModal .modal-content .modal-info-item:first-child .modal-info-value');
+                if (alertas.intensidade) {
+                    statusValue.textContent = `${alertas.emergenciaManual ? 'Emergência manual acionada!' : 'Queda detectada!'} - ${alertas.intensidade}`;
+                } else {
+                    statusValue.textContent = alertas.emergenciaManual ? 'Emergência manual acionada!' : 'Queda detectada agora!';
+                }
+
                 this.openModal('fallModal');
+                
+                // Tocar som de alerta (se permitido pelo navegador)
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSl7yvC');
+                    audio.volume = 0.3;
+                    audio.play().catch(() => console.log('Autoplay bloqueado'));
+                } catch (e) {
+                    console.log('Não foi possível tocar som de alerta');
+                }
             }
         };
 
